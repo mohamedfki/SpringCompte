@@ -182,58 +182,55 @@
         const ribToDelete = $(this).data('rib');
         console.log("Captured RIB:", ribToDelete);
 
-        // Check if ribToDelete is valid
         if (!ribToDelete) {
             console.error("RIB is null or empty.");
             return;
         }
 
-        // Open the confirmation modal
         $('#deleteConfirmModal').modal('show');
-
-        // Attach RIB to the confirmation button
         $('#confirmDeleteBtn').data('rib', ribToDelete);
     });
 
     // Handle deletion after confirmation
     $('#confirmDeleteBtn').on('click', function (e) {
-        e.preventDefault(); // Prevent default behavior
-
+        e.preventDefault();
         const ribToDelete = $(this).data('rib');
         console.log("Deleting account with RIB:", ribToDelete);
 
-        // Show a loading message using SweetAlert
+        // Show loading indicator
         Swal.fire({
-            title: 'Deleting...',
-            text: 'Please wait while the account is being deleted.',
+            title: 'Please wait...',
+            text: 'Deleting compte',
+            allowOutsideClick: false,
             didOpen: () => {
-                Swal.showLoading();
+                Swal.showLoading()
             }
         });
 
-        // Send the AJAX DELETE request
         $.ajax({
-            url: `/comptes/delete/${ribToDelete}`, // Endpoint for deletion
-            type: 'DELETE', // HTTP method
+            url: `/comptes/delete/${ribToDelete}`,
+            type: 'DELETE',
             headers: {
-                'X-CSRF-TOKEN': $('input[name="_csrf"]').val() // CSRF token for Spring Security
+                'X-CSRF-TOKEN': $('input[name="_csrf"]').val()
             },
             success: function (response) {
-                // Success - Hide modal and remove row
-                Swal.fire('Deleted!', 'The compte has been deleted.', 'success')
-                    .then(() => {
-                        $(`tr[data-rib="${ribToDelete}"]`).remove(); // Remove row dynamically
-                        $('#deleteConfirmModal').modal('hide'); // Hide the modal
-                    });
+                // Close both modals immediately
+                $('#deleteConfirmModal').modal('hide');
+                Swal.close();
+
+                // Remove row and show success
+                $(`tr[data-rib="${ribToDelete}"]`).remove();
+                Swal.fire({
+                    title: 'Deleted!',
+                    text: 'The compte has been deleted.',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             },
             error: function (xhr, status, error) {
-                // Error handling
                 Swal.fire('Error!', 'There was a problem deleting the compte.', 'error');
                 console.error("Error status:", status, "Error:", error);
-            },
-            complete: function () {
-                // Always close the loading state
-                Swal.close();
             }
         });
     });
