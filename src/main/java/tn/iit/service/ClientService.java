@@ -1,21 +1,22 @@
 package tn.iit.service;
 
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import tn.iit.dao.ClientRepository;
+import tn.iit.dao.CompteRepository;
+import tn.iit.entity.Client;
+
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import tn.iit.dao.ClientRepository;
-import tn.iit.entity.Client;
-import tn.iit.entity.Compte;
-
+@RequiredArgsConstructor
 @Service
 public class ClientService {
 
-    @Autowired
-    private ClientRepository clientRepository;
+    private final ClientRepository clientRepository;
+
+    private final CompteRepository compteRepository;
 
     public List<Client> findAll() {
         return clientRepository.findAll();
@@ -31,15 +32,16 @@ public class ClientService {
     public boolean existsByCin(String cin) {
         return clientRepository.existsByCin(cin);
     }
-  
+
     public boolean deleteById(String cin) {
-        Optional<Client> client = clientRepository.findById(cin);
-        if (client.isPresent()) {
-        	clientRepository.delete(client.get());
+        Optional<Client> clientOpt = clientRepository.findById(cin);
+        if (clientOpt.isPresent()) {
+            Client client = clientOpt.get();
+            compteRepository.deleteAll(client.getComptes());
+            clientRepository.delete(client);
             return true;
-        } else {
-            return false; // Client not found
         }
+        return false;
     }
 
 }
